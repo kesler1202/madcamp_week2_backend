@@ -1,5 +1,7 @@
 from django.contrib.auth import authenticate, login
-from django.http import HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_GET
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -38,6 +40,20 @@ class RegisterView(APIView):
             return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@require_GET
+def check_user(request):
+    email = request.GET.get('email', None)
+    response_data = {'exists': False}
+
+    if email:
+        try:
+            user = User.objects.get(email=email)
+            response_data['exists'] = True
+        except ObjectDoesNotExist:
+            response_data['exists'] = False
+
+    return JsonResponse(response_data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
