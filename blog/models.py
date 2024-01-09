@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 # Custom User Manager
 class UserManager(BaseUserManager):
@@ -54,15 +55,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+#models.py
 # Post Model
 class Post(models.Model):
-    writer = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=200)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+#     writer = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    title = models.CharField(max_length=200)
 
     def __str__(self):
         return self.title
+    def created_at_seoul_time(self):
+        return self.created_at.astimezone(timezone.get_default_timezone()).strftime("%Y-%m-%d %H:%M")
 
 # Comment Model
 class Comment(models.Model):

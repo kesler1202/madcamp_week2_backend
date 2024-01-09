@@ -4,13 +4,15 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, viewsets, generics
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from blog.models import User
-from .serializers import UserSerializer, UserRegistrationSerializer
+from blog.models import User, Post
+from .serializers import UserSerializer, UserRegistrationSerializer, PostSerializer
+
+
 class LoginView(APIView):
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')
@@ -69,3 +71,17 @@ class LogoutView(APIView):
 
 def HomeView(request):
     return HttpResponse("Welcome to the home page!")
+
+class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+
+class PostList(generics.ListCreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [AllowAny]
+
+class PostDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [AllowAny]
