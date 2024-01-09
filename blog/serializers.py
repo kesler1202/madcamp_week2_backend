@@ -1,36 +1,43 @@
 from rest_framework import serializers
+from django.contrib.auth.hashers import make_password
 from .models import User, Post, Comment
-
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'password', 'name', 'nickname', 'class_group']
+        fields = ['email', 'password', 'name', 'nickname', 'class_group', 'profile_picture', 'github_url']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        # Create the user through the User model manager
-        user = User.objects.create_user(
-            email=validated_data['email'],
-            password=validated_data['password'],
-            name=validated_data['name'],
-            nickname=validated_data['nickname'],
-            class_group=validated_data['class_group']
-            # Add other fields if necessary
-        )
-        return user
+        validated_data['password'] = make_password(validated_data.get('password'))
+        return super(UserRegistrationSerializer, self).create(validated_data)
 
 class UserSerializer(serializers.ModelSerializer):
+    post_count = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ['id', 'email', 'name', 'nickname', 'class_group', 'profile_picture', 'github_url', 'post_count', 'comment_count']
+        fields = ['id', 'email', 'name', 'nickname', 'class_group', 'profile_picture', 'github_url', 'post_count',
+                  'comment_count']
+        extra_kwargs = {'email': {'read_only': True}}
+
+    def get_post_count(self, obj):
+        return Post.objects.filter(writer=obj).count()
+
+    def get_comment_count(self, obj):
+        return Comment.objects.filter(writer=obj).count()
 
 class PostSerializer(serializers.ModelSerializer):
+    writer = UserSerializer(read_only=True)
+
     class Meta:
         model = Post
         fields = ['id', 'writer', 'title', 'content', 'created_at']
 
 class CommentSerializer(serializers.ModelSerializer):
+    writer = UserSerializer(read_only=True)
+
     class Meta:
         model = Comment
         fields = ['id', 'post', 'writer', 'content', 'created_at']

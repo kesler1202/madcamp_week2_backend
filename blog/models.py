@@ -3,27 +3,23 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.utils.translation import gettext_lazy as _
 
 # Custom User Manager
-# Custom User Manager
 class UserManager(BaseUserManager):
-    def create_user(self, email, password, name, nickname, class_group, **extra_fields):
+    def create_user(self, email, password=None, **extra_fields):
+        """
+        Create and save a User with the given email and password.
+        """
         if not email:
-            raise ValueError('The Email must be set')
-        if not password:
-            raise ValueError('The Password must be set')
-        if not name:
-            raise ValueError('The Name must be set')
-        if not nickname:
-            raise ValueError('The Nickname must be set')
-        if not class_group:
-            raise ValueError('The Class Group must be set')
-
+            raise ValueError(_('The Email must be set'))
         email = self.normalize_email(email)
-        user = self.model(email=email, name=name, nickname=nickname, class_group=class_group, **extra_fields)
+        user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password, name, nickname, class_group, **extra_fields):
+    def create_superuser(self, email, password=None, **extra_fields):
+        """
+        Create and save a SuperUser with the given email and password.
+        """
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
@@ -32,7 +28,7 @@ class UserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError(_('Superuser must have is_superuser=True.'))
 
-        return self.create_user(email, password, name, nickname, class_group, **extra_fields)
+        return self.create_user(email, password, **extra_fields)
 
 # User Model
 class User(AbstractBaseUser, PermissionsMixin):
@@ -58,23 +54,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
-    def has_perm(self, perm, obj=None):
-        """
-        Does the user have a specific permission?
-        """
-        # Simplest possible answer: Yes, always
-        return True
-
-    def has_module_perms(self, app_label):
-        """
-        Does the user have permissions to view the app `app_label`?
-        """
-        # Simplest possible answer: Yes, always
-        return True
-
 # Post Model
 class Post(models.Model):
-    writer = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    writer = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
