@@ -44,6 +44,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     post_count = models.IntegerField(default=0)
     comment_count = models.IntegerField(default=0)
 
+
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
@@ -60,7 +61,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Post(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-#     writer = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    writer = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=200)
 
     def __str__(self):
@@ -71,7 +72,7 @@ class Post(models.Model):
 # Comment Model
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
-    writer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    writer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
