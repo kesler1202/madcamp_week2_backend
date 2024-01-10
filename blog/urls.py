@@ -6,9 +6,9 @@ from .views import(
     HomeView,
     LogoutView,
     check_user,
-    PostViewSet,
     PostList,
-    PostDetail
+    PostListCreateView,
+    post_detail
 )
 
 urlpatterns = [
@@ -19,6 +19,6 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('', HomeView, name='home'),
     path('posts/', PostList.as_view(), name='post-list'),
-    path('posts/<int:pk>/', PostDetail.as_view(), name='post-detail'),
-
+    path('posts/', PostListCreateView.as_view(), name='post-list-create'),  # 게시물 추가
+    path('post/<int:post_id>/', post_detail, name='post_detail'),  # 댓글 추가
 ]

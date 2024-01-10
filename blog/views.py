@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate, login
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_GET
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,7 +10,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from blog.models import User, Post
+from blog.models import User, Post, Comment
+from .forms import CommentForm
 from .serializers import UserSerializer, UserRegistrationSerializer, PostSerializer
 
 
@@ -85,3 +87,47 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [AllowAny]
+#게시물 생성하기
+class PostListCreateView(generics.ListCreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+
+#댓글 생성 및 조회
+def post_detail(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    comments = Comment.objects.filter(post=post)
+
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.save()
+            return redirect('post_detail', post_id=post_id)
+    else:
+        form = CommentForm()
+
+    return render(request, 'myapp/post_detail.html', {'post': post, 'comments': comments, 'form': form})
+
+def create_comment(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.save()
+
+            # 댓글 생성이 성공했을 때, 생성된 댓글 정보를 JSON 형태로 응답합니다.
+            return JsonResponse({
+                'id': comment.id,
+                'content': comment.content,
+                'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            })
+        else:
+            # 폼이 유효하지 않을 경우 에러 응답
+            return JsonResponse({'error': 'Invalid form data'}, status=400)
+    else:
+        # POST 요청이 아닐 경우 에러 응답
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
