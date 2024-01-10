@@ -56,10 +56,10 @@ def check_user(request):
 
     return JsonResponse(response_data)
 
-def check_user_by_nickname(request, nickname):
+def check_user_by_name(request, name):
     # Implement the logic to check if a user exists by nickname
     # For example, searching in your User model
-    user_exists = User.objects.filter(nickname=nickname).exists()
+    user_exists = User.objects.filter(name=name).exists()
 
     # Return JSON response
     return JsonResponse({'exists': user_exists})
