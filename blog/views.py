@@ -56,6 +56,14 @@ def check_user(request):
 
     return JsonResponse(response_data)
 
+def check_user_by_nickname(request, nickname):
+    # Implement the logic to check if a user exists by nickname
+    # For example, searching in your User model
+    user_exists = User.objects.filter(nickname=nickname).exists()
+
+    # Return JSON response
+    return JsonResponse({'exists': user_exists})
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_profile(request):
@@ -70,6 +78,7 @@ class LogoutView(APIView):
         # Logout the user and delete the token
         request.user.auth_token.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 def HomeView(request):
     return HttpResponse("Welcome to the home page!")
@@ -91,6 +100,10 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
 class PostListCreateView(generics.ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(writer=self.request.user)
 
 #댓글 생성 및 조회
 def post_detail(request, post_id):

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import(
+from .views import (
     LoginView,
     RegisterView,
     get_user_profile,
@@ -8,7 +8,7 @@ from .views import(
     check_user,
     PostList,
     PostListCreateView,
-    post_detail
+    post_detail, check_user_by_nickname
 )
 
 urlpatterns = [
@@ -21,4 +21,5 @@ urlpatterns = [
     path('posts/', PostList.as_view(), name='post-list'),
     path('posts/', PostListCreateView.as_view(), name='post-list-create'),  # 게시물 추가
     path('post/<int:post_id>/', post_detail, name='post_detail'),  # 댓글 추가
+    path('checkUserByNickname/<str:nickname>/', check_user_by_nickname, name='check_user_by_nickname'),
 ]
